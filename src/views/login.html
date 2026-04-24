@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Prácticas — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #111827;
+      --border: #1e293b;
+      --accent: #6366f1;
+      --accent2: #06b6d4;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --error: #f43f5e;
+    }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(6,182,212,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.1), 0 40px 80px rgba(0,0,0,0.5);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: #a5b4fc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #6366f1;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+
+    .field { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(99,102,241,0.45); }
+    .btn:active { transform: translateY(0); }
+
+    .error-msg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.25);
+      color: #fb7185;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0 0;
+    }
+
+    .footer-text {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 16px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="card">
+    <div class="badge">SUPERVISOR PORTAL</div>
+    <h1>Bienvenido a<br><span>SistemaPrácticas</span></h1>
+    <p class="subtitle">Ingresa tus credenciales para continuar</p>
+
+    <!-- Error message -->
+    <div id="errorMsg" class="error-msg" style="display:none;">
+      ⚠️ Correo o contraseña incorrectos
+    </div>
+
+    <form action="/login" method="POST">
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" name="correo" placeholder="supervisor@empresa.com" required autofocus />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" name="contrasenia" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn">Ingresar al sistema →</button>
+    </form>
+
+    <hr class="divider" />
+    <p class="footer-text">Sistema de Calificación de Prácticas v1.0</p>
+  </div>
+
+  <script>
+    // Mostrar error si viene ?error=1 en la URL
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      document.getElementById('errorMsg').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

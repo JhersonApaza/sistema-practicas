@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Sistema de Prácticas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #111827;
+      --surface2: #1a2234;
+      --border: #1e293b;
+      --accent: #6366f1;
+      --accent2: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #f43f5e;
+      --text: #f1f5f9;
+      --muted: #64748b;
+    }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .nav-brand .dot {
+      width: 8px; height: 8px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      border-radius: 50%;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .supervisor-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #a5b4fc;
+    }
+
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.2);
+      color: #fb7185;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-logout:hover { background: rgba(244,63,94,0.2); }
+
+    /* MAIN */
+    main { padding: 32px; max-width: 1300px; margin: 0 auto; }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .page-title { font-size: 26px; font-weight: 700; }
+    .page-title span {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .stat-label { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px 10px 40px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus { border-color: var(--accent); }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none; border-radius: 10px;
+      color: #fff; font-family: 'Sora', sans-serif;
+      font-size: 14px; font-weight: 600;
+      padding: 10px 20px; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+
+    /* TABLE */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: var(--surface2); }
+
+    th {
+      padding: 14px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(30,41,59,0.5);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .id-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .name-cell { font-weight: 600; }
+    .name-cell small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+
+    .dni-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #a5b4fc;
+    }
+
+    .inst-cell { font-size: 13px; color: var(--muted); }
+
+    .nota-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .nota-high   { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+    .nota-mid    { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .nota-low    { background: rgba(244,63,94,0.15);  color: #fb7185; border: 1px solid rgba(244,63,94,0.25); }
+    .nota-none   { background: rgba(100,116,139,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+    .actions { display: flex; gap: 8px; }
+
+    .btn-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 15px;
+    }
+
+    .btn-icon.edit:hover  { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+    .btn-icon.del:hover   { background: rgba(244,63,94,0.15);  color: #fb7185; border-color: rgba(244,63,94,0.3); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .pag-controls { display: flex; gap: 6px; }
+
+    .pag-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .pag-btn:hover { border-color: var(--accent); color: var(--text); }
+    .pag-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%;
+      max-width: 520px;
+      transform: scale(0.95);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.open .modal { transform: scale(1); }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .modal-title { font-size: 20px; font-weight: 700; }
+
+    .btn-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-close:hover { color: var(--text); border-color: #475569; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus { border-color: var(--accent); }
+
+    .modal-footer {
+      display: flex; gap: 10px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-cancel:hover { color: var(--text); border-color: #475569; }
+
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="dot"></div>
+    SistemaPrácticas
+  </div>
+  <div class="nav-right">
+    <div class="supervisor-badge">
+      <i class="bi bi-person-badge"></i>
+      <span id="supervisorNombre">Supervisor</span>
+    </div>
+    <a href="/logout" class="btn-logout">
+      <i class="bi bi-box-arrow-right"></i> Salir
+    </a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Estudiantes en <span>Prácticas</span></h1>
+      <p class="page-subtitle">Gestiona y califica a los estudiantes asignados</p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-label">Total estudiantes</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+        <i class="bi bi-patch-check-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value" id="statAprobados">—</div>
+        <div class="stat-label">Aprobados (≥11)</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+        <i class="bi bi-bar-chart-fill"></i>
+      </div>
+      <div>
+        <div class="stat-value" id="statPromedio">—</div>
+        <div class="stat-label">Promedio general</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Buscar por nombre, DNI o carrera..." />
+    </div>
+    <button class="btn-primary" onclick="openModal()">
+      <i class="bi bi-plus-lg"></i> Nuevo estudiante
+    </button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Estudiante</th>
+          <th>DNI / Código</th>
+          <th>Institución</th>
+          <th>Nota</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <tr><td colspan="6" class="loading"><i class="bi bi-arrow-repeat"></i> Cargando...</td></tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span id="pagInfo">—</span>
+      <div class="pag-controls" id="pagControls"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Nuevo estudiante</h2>
+      <button class="btn-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
+    </div>
+
+    <div class="form-grid">
+      <input type="hidden" id="editId" />
+
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="fNombre" placeholder="Carlos" />
+      </div>
+      <div class="field">
+        <label>Apellido</label>
+        <input type="text" id="fApellido" placeholder="Ramírez" />
+      </div>
+      <div class="field">
+        <label>DNI / Código</label>
+        <input type="text" id="fDni" placeholder="12345678" />
+      </div>
+      <div class="field">
+        <label>Nota (0–20)</label>
+        <input type="number" id="fNota" placeholder="—" min="0" max="20" step="0.1" />
+      </div>
+      <div class="field full">
+        <label>Carrera</label>
+        <input type="text" id="fCarrera" placeholder="Ingeniería de Sistemas" />
+      </div>
+      <div class="field full">
+        <label>Institución</label>
+        <input type="text" id="fInstitucion" placeholder="Universidad Nacional" />
+      </div>
+      <div class="field full">
+        <label>Correo (acceso app Android)</label>
+        <input type="email" id="fCorreo" placeholder="estudiante@correo.com" />
+      </div>
+      <div class="field full">
+        <label>Contraseña (acceso app Android)</label>
+        <input type="password" id="fContrasenia" placeholder="••••••••" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardar()">
+        <i class="bi bi-check-lg"></i> Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allData = [];
+  let filtered = [];
+  let page = 1;
+  const perPage = 10;
+
+  // ── Cargar datos ─────────────────────────
+  async function cargar() {
+    try {
+      const res = await fetch('/api/estudiantes');
+      allData = await res.json();
+      filtered = [...allData];
+      updateStats();
+      renderTabla();
+    } catch(e) {
+      document.getElementById('tablaBody').innerHTML =
+        `<tr><td colspan="6" class="loading" style="color:#fb7185;">Error al cargar datos</td></tr>`;
+    }
+  }
+
+  function updateStats() {
+    const total = allData.length;
+    const conNota = allData.filter(e => e.nota !== null);
+    const aprobados = conNota.filter(e => e.nota >= 11).length;
+    const promedio = conNota.length
+      ? (conNota.reduce((s, e) => s + parseFloat(e.nota), 0) / conNota.length).toFixed(1)
+      : '—';
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statAprobados').textContent = aprobados;
+    document.getElementById('statPromedio').textContent = promedio;
+  }
+
+  function renderTabla() {
+    const tbody = document.getElementById('tablaBody');
+    const start = (page - 1) * perPage;
+    const slice = filtered.slice(start, start + perPage);
+    const total = filtered.length;
+
+    if (total === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            No hay estudiantes registrados
+          </div>
+        </td></tr>`;
+      document.getElementById('pagInfo').textContent = 'Sin resultados';
+      document.getElementById('pagControls').innerHTML = '';
+      return;
+    }
+
+    tbody.innerHTML = slice.map(e => `
+      <tr>
+        <td class="id-cell">${e.id_estudiante}</td>
+        <td class="name-cell">
+          ${e.nombre} ${e.apellido}
+          <small>${e.carrera}</small>
+        </td>
+        <td class="dni-cell">${e.dni}</td>
+        <td class="inst-cell">${e.institucion}</td>
+        <td>${notaBadge(e.nota)}</td>
+        <td>
+          <div class="actions">
+            <button class="btn-icon edit" title="Editar" onclick="editar(${e.id_estudiante})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-icon del" title="Eliminar" onclick="eliminar(${e.id_estudiante}, '${e.nombre} ${e.apellido}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    // Paginación
+    const totalPages = Math.ceil(total / perPage);
+    document.getElementById('pagInfo').textContent =
+      `Mostrando ${start + 1}–${Math.min(start + perPage, total)} de ${total} registros`;
+
+    let pagHTML = `
+      <button class="pag-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>
+        <i class="bi bi-chevron-left"></i>
+      </button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      pagHTML += `<button class="pag-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    pagHTML += `
+      <button class="pag-btn" onclick="goPage(${page+1})" ${page===totalPages?'disabled':''}>
+        <i class="bi bi-chevron-right"></i>
+      </button>`;
+    document.getElementById('pagControls').innerHTML = pagHTML;
+  }
+
+  function notaBadge(nota) {
+    if (nota === null || nota === undefined) return `<span class="nota-badge nota-none">S/N</span>`;
+    const n = parseFloat(nota);
+    const cls = n >= 14 ? 'nota-high' : n >= 11 ? 'nota-mid' : 'nota-low';
+    return `<span class="nota-badge ${cls}">${n.toFixed(1)}</span>`;
+  }
+
+  function goPage(p) {
+    const max = Math.ceil(filtered.length / perPage);
+    if (p < 1 || p > max) return;
+    page = p;
+    renderTabla();
+  }
+
+  // ── Búsqueda ─────────────────────────────
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    filtered = allData.filter(e =>
+      `${e.nombre} ${e.apellido}`.toLowerCase().includes(q) ||
+      e.dni.toLowerCase().includes(q) ||
+      e.carrera.toLowerCase().includes(q)
+    );
+    page = 1;
+    renderTabla();
+  });
+
+  // ── Modal ─────────────────────────────────
+  function openModal(data = null) {
+    document.getElementById('editId').value = data?.id_estudiante || '';
+    document.getElementById('fNombre').value = data?.nombre || '';
+    document.getElementById('fApellido').value = data?.apellido || '';
+    document.getElementById('fDni').value = data?.dni || '';
+    document.getElementById('fNota').value = data?.nota ?? '';
+    document.getElementById('fCarrera').value = data?.carrera || '';
+    document.getElementById('fInstitucion').value = data?.institucion || '';
+    document.getElementById('fCorreo').value = data?.correo || '';
+    document.getElementById('fContrasenia').value = '';
+    document.getElementById('modalTitle').textContent = data ? 'Editar estudiante' : 'Nuevo estudiante';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // ── CRUD ──────────────────────────────────
+  async function editar(id) {
+    const est = allData.find(e => e.id_estudiante === id);
+    if (est) openModal(est);
+  }
+
+  async function guardar() {
+    const id = document.getElementById('editId').value;
+    const body = {
+      nombre: document.getElementById('fNombre').value.trim(),
+      apellido: document.getElementById('fApellido').value.trim(),
+      dni: document.getElementById('fDni').value.trim(),
+      nota: document.getElementById('fNota').value || null,
+      carrera: document.getElementById('fCarrera').value.trim(),
+      institucion: document.getElementById('fInstitucion').value.trim(),
+      correo: document.getElementById('fCorreo').value.trim(),
+      contrasenia: document.getElementById('fContrasenia').value,
+    };
+
+    if (!body.nombre || !body.apellido || !body.dni || !body.carrera || !body.institucion || !body.correo) {
+      Swal.fire({ icon: 'warning', title: 'Campos requeridos', text: 'Completa todos los campos obligatorios.', background: '#111827', color: '#f1f5f9' });
+      return;
+    }
+
+    const url = id ? `/api/estudiantes/${id}` : '/api/estudiantes';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        closeModal();
+        await cargar();
+        Swal.fire({ icon: 'success', title: id ? '¡Actualizado!' : '¡Registrado!', timer: 1500, showConfirmButton: false, background: '#111827', color: '#f1f5f9' });
+      }
+    } catch(e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar.', background: '#111827', color: '#f1f5f9' });
+    }
+  }
+
+  async function eliminar(id, nombre) {
+    const result = await Swal.fire({
+      title: '¿Eliminar estudiante?',
+      text: `Se eliminará a ${nombre} permanentemente.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#f43f5e',
+      background: '#111827',
+      color: '#f1f5f9'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/estudiantes/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        await cargar();
+        Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1200, showConfirmButton: false, background: '#111827', color: '#f1f5f9' });
+      }
+    } catch(e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar.', background: '#111827', color: '#f1f5f9' });
+    }
+  }
+
+  cargar();
+</script>
+</body>
+</html>
