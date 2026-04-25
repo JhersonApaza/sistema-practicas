@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const estudianteRoutes = require('./routes/estudianteRoutes');
+const recuperarRoutes = require('./routes/recuperarRoutes');
 
 const app = express();
 
@@ -33,18 +34,9 @@ app.get('/', (req, res) => res.redirect('/login'));
 
 app.use('/', authRoutes);
 app.use('/', estudianteRoutes);
-// RUTA TEMPORAL — borrar después
-app.get('/fix-correo', (req, res) => {
-  const db = require('./config/db');
-  db.query(
-    "UPDATE supervisores SET correo = 'apazajherson8@gmail.com' WHERE correo = 'jherson8@gmail.com'",
-    (err, result) => {
-      if (err) return res.json({ error: err.message });
-      res.json({ ok: true, filas_actualizadas: result.affectedRows });
-    }
-  );
-});
+app.use('/', recuperarRoutes);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor en http://localhost:${PORT}`);
+  console.log(` Servidor en http://localhost:${PORT}`);
 });

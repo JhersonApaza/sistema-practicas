@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nueva contraseña — Sistema de Prácticas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/public/css/login.css" />
+  <style>
+    .alert {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .alert.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #34d399; }
+    .alert.error   { background: rgba(244,63,94,0.1);  border: 1px solid rgba(244,63,94,0.25);  color: #fb7185; }
+
+    .password-strength {
+      height: 4px;
+      border-radius: 4px;
+      background: #1e293b;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .strength-bar {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s, background 0.3s;
+    }
+    .strength-label {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn.loading::after {
+      content: '';
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <img src="/public/img/fondo2.jpg" alt="fondo" class="login__bg">
+
+  <div class="card">
+    <h1 style="font-size:24px; margin-bottom:6px;">Nueva<br><span>contraseña</span></h1>
+    <p class="subtitle" style="margin-bottom:28px;">Crea una contraseña segura para tu cuenta</p>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div id="formSection">
+      <div class="field">
+        <label>Nueva contraseña</label>
+        <input type="password" id="nuevaContrasena" placeholder="Mínimo 8 caracteres" oninput="medirFuerza(this.value)" />
+        <div class="password-strength"><div class="strength-bar" id="strengthBar"></div></div>
+        <p class="strength-label" id="strengthLabel">Ingresa una contraseña</p>
+      </div>
+      <div class="field">
+        <label>Confirmar contraseña</label>
+        <input type="password" id="confirmarContrasena" placeholder="Repite la contraseña" />
+      </div>
+      <button class="btn" id="btnCambiar" onclick="cambiarContrasena()">
+        Guardar nueva contraseña →
+      </button>
+    </div>
+
+    <hr class="divider" />
+    <p class="footer-text">Sistema de Calificación de Prácticas</p>
+  </div>
+
+  <script>
+    // Obtener correo de la URL
+    const correo = new URLSearchParams(window.location.search).get('correo') || '';
+
+    function mostrarAlerta(tipo, msg) {
+      const b = document.getElementById('alertBox');
+      b.className = `alert ${tipo}`;
+      b.style.display = 'flex';
+      b.textContent = msg;
+    }
+
+    function medirFuerza(pass) {
+      const bar = document.getElementById('strengthBar');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (pass.length >= 8) score++;
+      if (/[A-Z]/.test(pass)) score++;
+      if (/[0-9]/.test(pass)) score++;
+      if (/[^A-Za-z0-9]/.test(pass)) score++;
+      const colores = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+      const etiquetas = ['', 'Muy débil', 'Débil', 'Aceptable', 'Fuerte'];
+      bar.style.width = `${score * 25}%`;
+      bar.style.background = colores[score] || '#1e293b';
+      label.textContent = score > 0 ? etiquetas[score] : 'Ingresa una contraseña';
+      label.style.color = colores[score] || '#475569';
+    }
+
+    async function cambiarContrasena() {
+      const nueva = document.getElementById('nuevaContrasena').value;
+      const confirmar = document.getElementById('confirmarContrasena').value;
+
+      if (nueva.length < 8) { mostrarAlerta('error', '⚠️ La contraseña debe tener al menos 8 caracteres.'); return; }
+      if (nueva !== confirmar) { mostrarAlerta('error', '⚠️ Las contraseñas no coinciden.'); return; }
+      if (!correo) { mostrarAlerta('error', '❌ Sesión inválida. Vuelve a iniciar el proceso.'); return; }
+
+      const btn = document.getElementById('btnCambiar');
+      btn.classList.add('loading');
+
+      try {
+        const res = await fetch('/recuperar/cambiar-contrasena', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, nuevaContrasena: nueva })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          mostrarAlerta('success', ' ¡Contraseña actualizada! Redirigiendo al login...');
+          document.getElementById('formSection').style.opacity = '0.4';
+          document.getElementById('formSection').style.pointerEvents = 'none';
+          setTimeout(() => { window.location.href = '/login'; }, 2500);
+        } else {
+          mostrarAlerta('error', `⚠️ ${data.mensaje}`);
+        }
+      } catch {
+        mostrarAlerta('error', '❌ Error de conexión.');
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+  </script>
+</body>
+</html>

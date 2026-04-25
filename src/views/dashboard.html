@@ -25,6 +25,31 @@
       --muted: #64748b;
     }
 
+    /* ── Tema claro ── */
+    body.light {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface2: #e2e8f0;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+
+    /* ── Botón tema ── */
+    .btn-theme {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-theme:hover { opacity: 0.8; }
+
     body {
       font-family: 'Sora', sans-serif;
       background: var(--bg);
@@ -407,6 +432,93 @@
     .btn-cancel:hover { color: var(--text); border-color: #475569; }
 
     .loading { text-align: center; padding: 40px; color: var(--muted); }
+
+    /* ── Campos bloqueados ── */
+    .field-locked {
+      opacity: 0.55;
+      cursor: not-allowed;
+      background: rgba(255,255,255,0.03) !important;
+      border-color: #1e293b !important;
+    }
+    .lock-icon { font-size: 10px; color: #64748b; margin-right: 4px; }
+
+    /* ── Botón editar nota ── */
+    .btn-eval {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #6366f1;
+      background: rgba(99,102,241,0.12);
+      color: #818cf8;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-eval:hover { background: rgba(99,102,241,0.22); color: #a5b4fc; }
+
+    /* ── Modal evaluación ── */
+    .modal-eval { max-width: 520px; }
+    .eval-subtitle { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+    .eval-body { padding: 0 2px; }
+
+    /* Acordeón contenedor */
+    .criterios-accordion { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+    /* Cabecera clickeable del criterio */
+    .criterio-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .criterio-header:hover { background: rgba(255,255,255,0.06); }
+    .criterio-header.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom-color: transparent; }
+
+    .criterio-nombre { font-size: 13px; color: var(--text); }
+    .criterio-preview { display: flex; align-items: center; gap: 8px; }
+    .criterio-preview .mini-stars { font-size: 12px; color: #f59e0b; letter-spacing: 1px; }
+    .criterio-preview .chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+    .criterio-header.open .chevron { transform: rotate(180deg); }
+
+    /* Panel desplegable */
+    .criterio-panel {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      padding: 10px 14px;
+      display: none;
+    }
+    .criterio-panel.open { display: flex; justify-content: center; }
+
+    .stars { display: flex; gap: 6px; }
+    .star { font-size: 24px; cursor: pointer; color: #334155; transition: color 0.1s; user-select: none; }
+    .star.activa { color: #f59e0b; }
+    .star:hover { color: #fbbf24; }
+
+    .eval-resultado {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 10px; padding: 10px 16px;
+      margin-bottom: 14px;
+    }
+    .eval-resultado span:first-child { font-size: 13px; color: var(--muted); }
+    .nota-resultado { font-size: 22px; font-weight: 700; color: #818cf8; }
+
+    textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; color: var(--text);
+      font-family: 'Sora', sans-serif; font-size: 14px; resize: vertical;
+      box-sizing: border-box;
+    }
+    textarea:focus { outline: none; border-color: #6366f1; }
 </style>
 <body>
 
@@ -417,6 +529,9 @@
     SistemaPrácticas
   </div>
   <div class="nav-right">
+    <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Cambiar tema">
+      <i class="bi bi-moon-fill" id="themeIcon"></i>
+    </button>
     <div class="supervisor-badge">
       <i class="bi bi-person-badge"></i>
       <span id="supervisorNombre">Supervisor</span>
@@ -485,7 +600,7 @@
         <tr>
           <th>#</th>
           <th>Estudiante</th>
-          <th>DNI / Código</th>
+          <th>DNI</th>
           <th>Institución</th>
           <th>Nota</th>
           <th>Acciones</th>
@@ -502,55 +617,107 @@
   </div>
 </main>
 
-<!-- MODAL -->
+<!-- ═══════════════════════════════════════
+     MODAL EDITAR ESTUDIANTE
+════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalTitle">Nuevo estudiante</h2>
+      <h2 class="modal-title" id="modalTitle">Crear estudiante</h2>
       <button class="btn-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
     </div>
 
     <div class="form-grid">
       <input type="hidden" id="editId" />
 
+      <!-- Nombre -->
       <div class="field">
-        <label>Nombre</label>
+        <label id="lbNombre">Nombre</label>
         <input type="text" id="fNombre" placeholder="Carlos" />
       </div>
+      <!-- Apellido -->
       <div class="field">
-        <label>Apellido</label>
+        <label id="lbApellido">Apellido</label>
         <input type="text" id="fApellido" placeholder="Ramírez" />
       </div>
+      <!-- DNI -->
       <div class="field">
-        <label>DNI / Código</label>
-        <input type="text" id="fDni" placeholder="12345678" />
+        <label id="lbDni">DNI</label>
+        <input type="text" id="fDni" placeholder="12345678" maxlength="8" />
       </div>
+      <!-- Teléfono (siempre editable) -->
       <div class="field">
-        <label>Nota (0–20)</label>
-        <input type="number" id="fNota" placeholder="—" min="0" max="20" step="0.1" />
+        <label>Teléfono</label>
+        <input type="tel" id="fTelefono" placeholder="999 888 777" />
       </div>
+      <!-- Carrera -->
       <div class="field full">
-        <label>Carrera</label>
+        <label id="lbCarrera">Carrera</label>
         <input type="text" id="fCarrera" placeholder="Ingeniería de Sistemas" />
       </div>
+      <!-- Institución -->
       <div class="field full">
-        <label>Institución</label>
+        <label id="lbInstitucion">Institución</label>
         <input type="text" id="fInstitucion" placeholder="Universidad Nacional" />
       </div>
+      <!-- Correo -->
       <div class="field full">
-        <label>Correo (acceso app Android)</label>
+        <label id="lbCorreo">Correo (acceso app Android)</label>
         <input type="email" id="fCorreo" placeholder="estudiante@correo.com" />
       </div>
+      <!-- Contraseña (siempre editable en crear; bloqueada en editar) -->
       <div class="field full">
-        <label>Contraseña (acceso app Android)</label>
+        <label id="lbContrasenia">Contraseña (acceso app Android)</label>
         <input type="password" id="fContrasenia" placeholder="••••••••" />
       </div>
     </div>
 
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-eval" id="btnEditarNota" onclick="abrirEval()" style="display:none;">
+        <i class="bi bi-star-fill"></i> Editar nota por criterios
+      </button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="guardarTelefono()">
+          <i class="bi bi-check-lg"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL EVALUACIÓN POR CRITERIOS
+════════════════════════════════════════ -->
+<div class="modal-overlay" id="evalOverlay">
+  <div class="modal modal-eval">
+    <div class="modal-header">
+      <h2 class="modal-title">Evaluación por criterios</h2>
+      <button class="btn-close" onclick="closeEval()"><i class="bi bi-x"></i></button>
+    </div>
+
+    <div class="eval-body">
+      <p class="eval-subtitle">Haz clic en cada criterio para calificarlo del <strong>1</strong> (deficiente) al <strong>5</strong> (excelente)</p>
+
+      <div class="criterios-accordion" id="criteriosList">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="eval-resultado">
+        <span>Nota final (0–20):</span>
+        <span class="nota-resultado" id="notaResultado">—</span>
+      </div>
+
+      <div class="field full">
+        <label>Comentario del supervisor</label>
+        <textarea id="fComentario" rows="2" placeholder="Indicar áreas de mejora, fortalezas o recomendaciones…"></textarea>
+      </div>
+    </div>
+
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn-primary" onclick="guardar()">
-        <i class="bi bi-check-lg"></i> Guardar
+      <button class="btn-cancel" onclick="closeEval()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarEval()">
+        <i class="bi bi-check-lg"></i> Guardar evaluación
       </button>
     </div>
   </div>

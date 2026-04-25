@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Prácticas — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="public/css/login.css" />
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <img src="public//img/fondo2.jpg" alt="image" class="login__bg">
+  <div class="card">
+    <h1>Bienvenido a<br><span>Sistema de Prácticas</span></h1>
+    
+    <p class="subtitle">Ingresa tus credenciales para continuar</p>
+
+    <!-- Error message -->
+    <div id="errorMsg" class="error-msg" style="display:none;">
+      ⚠️ Correo o contraseña incorrectos
+    </div>
+
+    <form action="/login" method="POST">
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" name="correo" placeholder="supervisor@empresa.com" required autofocus />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" name="contrasenia" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn">Ingresar al sistema →</button>
+    </form>
+
+    <hr class="divider" />
+    <p class="footer-text">Sistema de Calificación de Prácticas</p>
+  </div>
+
+  <script>
+    // Mostrar error si viene ?error=1 en la URL
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      document.getElementById('errorMsg').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

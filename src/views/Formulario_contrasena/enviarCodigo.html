@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar contraseña — Sistema de Prácticas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/public/css/login.css" />
+  <style>
+    /* ── Pasos ── */
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+    }
+    .step-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: #818cf8;
+      transition: all 0.3s;
+    }
+    .step.active .step-circle {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border-color: #6366f1;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(99,102,241,0.4);
+    }
+    .step.done .step-circle {
+      background: rgba(16,185,129,0.15);
+      border-color: rgba(16,185,129,0.4);
+      color: #34d399;
+    }
+    .step-label {
+      font-size: 10px;
+      color: #475569;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }
+    .step.active .step-label { color: #a5b4fc; }
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(99,102,241,0.15);
+      margin-bottom: 18px;
+    }
+
+    /* ── Alerta / mensaje ── */
+    .alert {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .alert.success {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: #34d399;
+    }
+    .alert.error {
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.25);
+      color: #fb7185;
+      animation: shake 0.3s ease;
+    }
+    .alert.info {
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: #a5b4fc;
+    }
+
+    /* ── Inputs de código OTP ── */
+    .otp-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 8px 0 4px;
+    }
+    .otp-group input {
+      width: 48px; height: 56px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: 10px;
+      padding: 0;
+      letter-spacing: 0;
+    }
+
+    /* ── Sección oculta ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Botón secundario ── */
+    .btn-ghost {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 10px;
+      color: #818cf8;
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.5); }
+
+    /* ── Temporizador ── */
+    .timer-text {
+      text-align: center;
+      font-size: 12px;
+      color: #475569;
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .timer-text span { color: #6366f1; font-weight: 600; }
+
+    /* ── Back link ── */
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #475569;
+      text-decoration: none;
+      margin-bottom: 28px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #94a3b8; }
+
+    /* ── Icono de candado decorativo ── */
+    .icon-lock {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ── Loading spinner en botón ── */
+    .btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn.loading::after {
+      content: '';
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <img src="/public/img/fondo2.jpg" alt="fondo" class="login__bg">
+
+  <div class="card">
+
+    <!-- Volver al login -->
+    <a href="/login" class="back-link">← Volver al login</a>
+
+    <!-- Icono -->
+
+    <h1 style="font-size:24px; margin-bottom:6px;">Recuperar<br><span>contraseña</span></h1>
+    <p class="subtitle" style="margin-bottom:28px;">Te enviaremos un código de 6 dígitos a tu correo</p>
+
+    <!-- Indicador de pasos -->
+    <div class="steps">
+      <div class="step active" id="step1-indicator">
+        <div class="step-circle">1</div>
+        <span class="step-label">Correo</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step2-indicator">
+        <div class="step-circle">2</div>
+        <span class="step-label">Código</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step3-indicator">
+        <div class="step-circle">✓</div>
+        <span class="step-label">Listo</span>
+      </div>
+    </div>
+
+    <!-- Mensaje de alerta global -->
+    <div id="alertBox" class="alert"></div>
+
+    <!-- ════════════════════════════════
+         PASO 1: Ingresar correo
+    ════════════════════════════════ -->
+    <div class="section active" id="seccion-correo">
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input
+          type="email"
+          id="inputCorreo"
+          placeholder="supervisor@empresa.com"
+          autofocus
+        />
+      </div>
+      <button class="btn" id="btnEnviarCodigo" onclick="enviarCodigo()">
+        Enviar código de verificación →
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════
+         PASO 2: Ingresar código OTP
+    ════════════════════════════════ -->
+    <div class="section" id="seccion-codigo">
+      <p style="font-size:13px; color:#64748b; margin-bottom:16px; text-align:center;">
+        Ingresa el código de 6 dígitos enviado a<br>
+        <strong id="correoMostrado" style="color:#a5b4fc;"></strong>
+      </p>
+
+      <!-- Inputs individuales del código OTP -->
+      <div class="otp-group">
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+        <input type="text" maxlength="1" class="otp-input" inputmode="numeric" pattern="[0-9]" />
+      </div>
+
+      <!-- Temporizador -->
+      <p class="timer-text">El código expira en <span id="timerDisplay">10:00</span></p>
+
+      <button class="btn" id="btnVerificar" onclick="verificarCodigo()" style="margin-top:20px;">
+        Verificar código →
+      </button>
+      <button class="btn-ghost" id="btnReenviar" onclick="reenviarCodigo()" style="display:none;">
+        Reenviar código
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════
+         PASO 3: Éxito — redirigir
+    ════════════════════════════════ -->
+    <div class="section" id="seccion-exito">
+      <div style="text-align:center; padding: 10px 0;">
+        <div style="font-size: 48px; margin-bottom: 16px;">😎</div>
+        <p style="font-size: 15px; color:#94a3b8; margin-bottom: 24px;">
+          Código verificado correctamente.<br>Serás redirigido para crear tu nueva contraseña.
+        </p>
+        <div style="font-size:12px; color:#475569; font-family:'JetBrains Mono',monospace;">
+          Redirigiendo en <span id="countdownRedir">3</span>s...
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+    <p class="footer-text">Sistema de Calificación de Prácticas</p>
+  </div>
+
+  <script>
+    // ── Variables globales ──────────────────────────────────────
+    let correoActual = '';
+    let timerInterval = null;
+    let segundosRestantes = 600; // 10 minutos
+
+    // ── Utilidades de UI ────────────────────────────────────────
+    function mostrarAlerta(tipo, mensaje) {
+      const box = document.getElementById('alertBox');
+      box.className = `alert ${tipo}`;
+      box.style.display = 'flex';
+      box.textContent = mensaje;
+    }
+
+    function ocultarAlerta() {
+      document.getElementById('alertBox').style.display = 'none';
+    }
+
+    function irSeccion(nombre) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(`seccion-${nombre}`).classList.add('active');
+    }
+
+    function marcarPaso(paso) {
+      ['step1-indicator','step2-indicator','step3-indicator'].forEach((id, i) => {
+        const el = document.getElementById(id);
+        el.classList.remove('active','done');
+        if (i + 1 < paso) el.classList.add('done');
+        if (i + 1 === paso) el.classList.add('active');
+      });
+    }
+
+    // ── OTP: manejo de inputs individuales ─────────────────────
+    document.querySelectorAll('.otp-input').forEach((input, idx, inputs) => {
+      input.addEventListener('input', () => {
+        // Solo permitir dígitos
+        input.value = input.value.replace(/[^0-9]/g, '');
+        if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+      });
+      input.addEventListener('paste', (e) => {
+        // Permitir pegar el código completo
+        e.preventDefault();
+        const texto = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+        [...texto].forEach((char, i) => { if (inputs[i]) inputs[i].value = char; });
+        if (inputs[Math.min(texto.length, 5)]) inputs[Math.min(texto.length, 5)].focus();
+      });
+    });
+
+    function obtenerCodigo() {
+      return [...document.querySelectorAll('.otp-input')].map(i => i.value).join('');
+    }
+
+    function limpiarCodigo() {
+      document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+      document.querySelectorAll('.otp-input')[0].focus();
+    }
+
+    // ── Temporizador de 10 minutos ──────────────────────────────
+    function iniciarTimer() {
+      segundosRestantes = 600;
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        segundosRestantes--;
+        const min = Math.floor(segundosRestantes / 60).toString().padStart(2,'0');
+        const sec = (segundosRestantes % 60).toString().padStart(2,'0');
+        document.getElementById('timerDisplay').textContent = `${min}:${sec}`;
+
+        if (segundosRestantes <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('timerDisplay').textContent = '00:00';
+          mostrarAlerta('error', '⏰ El código expiró. Solicita uno nuevo.');
+          document.getElementById('btnVerificar').style.display = 'none';
+          document.getElementById('btnReenviar').style.display = 'block';
+        }
+      }, 1000);
+    }
+
+    // ── PASO 1: Enviar código al correo ─────────────────────────
+    async function enviarCodigo() {
+      const correo = document.getElementById('inputCorreo').value.trim();
+      if (!correo) { mostrarAlerta('error', '⚠️ Ingresa tu correo electrónico.'); return; }
+
+      const btn = document.getElementById('btnEnviarCodigo');
+      btn.classList.add('loading');
+      btn.textContent = 'Enviando...';
+      ocultarAlerta();
+
+      try {
+        const res = await fetch('/recuperar/enviar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          correoActual = correo;
+          document.getElementById('correoMostrado').textContent = correo;
+          irSeccion('codigo');
+          marcarPaso(2);
+          iniciarTimer();
+        } else {
+          mostrarAlerta('error', `⚠️ ${data.mensaje || 'No se pudo enviar el código.'}`);
+        }
+      } catch {
+        mostrarAlerta('error', '❌ Error de conexión. Intenta nuevamente.');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Enviar código de verificación →';
+      }
+    }
+
+    // ── PASO 2: Verificar código ingresado ──────────────────────
+    async function verificarCodigo() {
+      const codigo = obtenerCodigo();
+      if (codigo.length < 6) { mostrarAlerta('error', '⚠️ Ingresa los 6 dígitos del código.'); return; }
+
+      const btn = document.getElementById('btnVerificar');
+      btn.classList.add('loading');
+      ocultarAlerta();
+
+      try {
+        const res = await fetch('/recuperar/verificar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: correoActual, codigo })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          clearInterval(timerInterval);
+          irSeccion('exito');
+          marcarPaso(3);
+          // Redirigir al formulario de nueva contraseña
+          let cuenta = 3;
+          const interval = setInterval(() => {
+            cuenta--;
+            document.getElementById('countdownRedir').textContent = cuenta;
+            if (cuenta <= 0) {
+              clearInterval(interval);
+              window.location.href = `/recuperar/nueva-contrasena?correo=${encodeURIComponent(correoActual)}`;
+            }
+          }, 1000);
+        } else {
+          mostrarAlerta('error', `⚠️ ${data.mensaje || 'Código incorrecto.'}`);
+          limpiarCodigo();
+        }
+      } catch {
+        mostrarAlerta('error', '❌ Error de conexión. Intenta nuevamente.');
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    // ── Reenviar código ─────────────────────────────────────────
+    async function reenviarCodigo() {
+      document.getElementById('btnReenviar').style.display = 'none';
+      document.getElementById('btnVerificar').style.display = 'block';
+      limpiarCodigo();
+      ocultarAlerta();
+
+      document.getElementById('inputCorreo').value = correoActual;
+      await enviarCodigo();
+      iniciarTimer();
+    }
+
+    // ── Enter para enviar en el campo de correo ─────────────────
+    document.getElementById('inputCorreo').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') enviarCodigo();
+    });
+  </script>
+</body>
+</html>

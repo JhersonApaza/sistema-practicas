@@ -18,10 +18,10 @@ exports.getOne = (req, res) => {
 };
 
 exports.create = (req, res) => {
-    const { nombre, apellido, dni, carrera, institucion, nota, correo, contrasenia } = req.body;
-    const sql = `INSERT INTO estudiantes (nombre, apellido, dni, carrera, institucion, nota, correo, contrasenia, id_supervisor)
+    const { nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono } = req.body;
+    const sql = `INSERT INTO estudiantes (nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono, id_supervisor)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const valores = [nombre, apellido, dni, carrera, institucion, nota || null, correo, contrasenia, req.session.supervisor.id_supervisor];
+    const valores = [nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono || null, req.session.supervisor.id_supervisor];
 
     db.query(sql, valores, (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -30,15 +30,41 @@ exports.create = (req, res) => {
 };
 
 exports.update = (req, res) => {
-    const { nombre, apellido, dni, carrera, institucion, nota, correo, contrasenia } = req.body;
-    const sql = `UPDATE estudiantes SET nombre=?, apellido=?, dni=?, carrera=?, institucion=?, nota=?, correo=?, contrasenia=?
+    const { nombre, apellido, dni, carrera, institucion, correo, contrasenia } = req.body;
+    const sql = `UPDATE estudiantes SET nombre=?, apellido=?, dni=?, carrera=?, institucion=?, correo=?, contrasenia=?
                  WHERE id_estudiante=?`;
-    const valores = [nombre, apellido, dni, carrera, institucion, nota || null, correo, contrasenia, req.params.id];
+    const valores = [nombre, apellido, dni, carrera, institucion, correo, contrasenia, req.params.id];
 
     db.query(sql, valores, (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
+};
+
+// PATCH: solo actualiza el teléfono
+exports.updateTelefono = (req, res) => {
+    const { telefono } = req.body;
+    db.query(
+        'UPDATE estudiantes SET telefono=? WHERE id_estudiante=?',
+        [telefono || null, req.params.id],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        }
+    );
+};
+
+// PATCH: actualiza nota y comentario del supervisor
+exports.updateNota = (req, res) => {
+    const { nota, comentario } = req.body;
+    db.query(
+        'UPDATE estudiantes SET nota=?, comentario=? WHERE id_estudiante=?',
+        [nota ?? null, comentario || null, req.params.id],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        }
+    );
 };
 
 exports.remove = (req, res) => {
@@ -68,7 +94,9 @@ exports.apiLogin = (req, res) => {
             dni: est.dni,
             carrera: est.carrera,
             institucion: est.institucion,
-            nota: est.nota
+            nota: est.nota,
+            telefono: est.telefono,
+            comentario: est.comentario
         });
     });
 };
