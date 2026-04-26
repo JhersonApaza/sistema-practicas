@@ -16,7 +16,11 @@ exports.getMensajes = (req, res) => {
 };
 
 exports.enviarMensaje = (req, res) => {
+    console.log("BODY RECIBIDO:", req.body);
+
     const { mensaje, email, nombre, imagen_url } = req.body;
+
+    console.log(mensaje, email, nombre, imagen_url);
 
     const sql = `
         INSERT INTO mensajes (mensaje, email, nombre, imagen_url)
@@ -25,8 +29,10 @@ exports.enviarMensaje = (req, res) => {
 
     db.query(sql, [mensaje, email, nombre, imagen_url], (err, result) => {
         if (err) {
-            console.error(err);
-            return res.status(500).json({ error: "Error al guardar mensaje" });
+            console.error("ERROR SQL:", err);
+            return res.status(500).json({
+                error: "Error al guardar mensaje"
+            });
         }
 
         res.status(200).json({
