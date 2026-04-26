@@ -4,6 +4,7 @@ const ctrl = require('../controllers/chatController');
 
 router.get('/api/chat/mensajes', ctrl.getMensajes);
 router.post('/api/chat/enviar', ctrl.enviarMensaje);
+router.post('/api/chat/upload', ctrl.subirImagen);
 router.delete('/api/chat/:id', ctrl.eliminarMensaje);
 
 module.exports = router;
