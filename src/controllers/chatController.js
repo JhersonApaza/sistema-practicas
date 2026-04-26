@@ -39,20 +39,13 @@ exports.getMensajes = (req, res) => {
 };
 
 exports.enviarMensaje = (req, res) => {
-    console.log("BODY RECIBIDO:", req.body);
+    const { mensaje, email, nombre, imagen_url, rol } = req.body; // ← agrega rol
 
-    const { mensaje, email, nombre, imagen_url } = req.body;
+    const sql = `INSERT INTO mensajes (mensaje, email, nombre, imagen_url, rol)
+                 VALUES (?, ?, ?, ?, ?)`;
 
-    const sql = `
-        INSERT INTO mensajes (mensaje, email, nombre, imagen_url)
-        VALUES (?, ?, ?, ?)
-    `;
-
-    db.query(sql, [mensaje, email, nombre, imagen_url], (err, result) => {
-        if (err) {
-            console.error("ERROR SQL:", err);
-            return res.status(500).json({ error: "Error al guardar mensaje" });
-        }
+    db.query(sql, [mensaje, email, nombre, imagen_url, rol || null], (err, result) => {
+        if (err) return res.status(500).json({ error: "Error al guardar mensaje" });
         res.status(200).json({ success: true });
     });
 };
