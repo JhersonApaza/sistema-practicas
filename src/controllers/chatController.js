@@ -1,16 +1,4 @@
 const db = require('../config/db');
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage });
-
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -20,6 +8,8 @@ cloudinary.config({
 });
 
 exports.subirImagen = (req, res) => {
+    console.log("BODY imagen recibido:", req.body.imagen ? "SÍ llegó" : "NO llegó");
+
     if (!req.body.imagen) {
         return res.status(400).json({ error: "No se recibió imagen" });
     }
@@ -28,8 +18,10 @@ exports.subirImagen = (req, res) => {
         folder: 'chat'
     }, (err, result) => {
         if (err) {
+            console.error("ERROR CLOUDINARY:", err);
             return res.status(500).json({ error: "Error al subir" });
         }
+        console.log("URL CLOUDINARY:", result.secure_url);
         res.status(200).json({ url: result.secure_url });
     });
 };
@@ -40,14 +32,9 @@ exports.getMensajes = (req, res) => {
     db.query(sql, (err, results) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({
-                error: "Error al obtener mensajes"
-            });
+            return res.status(500).json({ error: "Error al obtener mensajes" });
         }
-
-        res.json({
-            data: results
-        });
+        res.json({ data: results });
     });
 };
 
@@ -64,34 +51,20 @@ exports.enviarMensaje = (req, res) => {
     db.query(sql, [mensaje, email, nombre, imagen_url], (err, result) => {
         if (err) {
             console.error("ERROR SQL:", err);
-            return res.status(500).json({
-                error: "Error al guardar mensaje"
-            });
+            return res.status(500).json({ error: "Error al guardar mensaje" });
         }
-
-        res.status(200).json({
-            success: true
-        });
+        res.status(200).json({ success: true });
     });
 };
 
 exports.eliminarMensaje = (req, res) => {
     const { id } = req.params;
 
-    db.query(
-        "DELETE FROM mensajes WHERE id = ?",
-        [id],
-        (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({
-                    error: "Error al eliminar"
-                });
-            }
-
-            res.status(200).json({
-                success: true
-            });
+    db.query("DELETE FROM mensajes WHERE id = ?", [id], (err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Error al eliminar" });
         }
-    );
+        res.status(200).json({ success: true });
+    });
 };
