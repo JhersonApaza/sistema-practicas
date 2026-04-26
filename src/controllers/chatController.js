@@ -1,5 +1,3 @@
-const multer = require('multer');
-const path = require('path');
 const db = require('../config/db');
 
 const storage = multer.diskStorage({
@@ -13,27 +11,28 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-exports.subirImagen = [
-    upload.single('imagen'),
-(req, res) => {
-    console.log("FILE RECIBIDO:", req.file);
+const cloudinary = require('cloudinary').v2;
 
-    if (!req.file) {
-        console.log("NO LLEGÓ ARCHIVO");
-        return res.status(400).json({
-            error: "No se subió ninguna imagen"
-        });
+cloudinary.config({
+    cloud_name: 'di6mgzute',
+    api_key: '779395288726242',
+    api_secret: 'jjktWhgwd08YUBqeeoNlOFX9eVg'
+});
+
+exports.subirImagen = (req, res) => {
+    if (!req.body.imagen) {
+        return res.status(400).json({ error: "No se recibió imagen" });
     }
 
-    const imageUrl = `https://sistema-practicas.onrender.com/uploads/${req.file.filename}`;
-
-    console.log("URL GENERADA:", imageUrl);
-
-    res.status(200).json({
-        url: imageUrl
+    cloudinary.uploader.upload(req.body.imagen, {
+        folder: 'chat'
+    }, (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: "Error al subir" });
+        }
+        res.status(200).json({ url: result.secure_url });
     });
-}
-];
+};
 
 exports.getMensajes = (req, res) => {
     const sql = "SELECT * FROM mensajes ORDER BY fecha ASC";
