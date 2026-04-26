@@ -15,19 +15,24 @@ const upload = multer({ storage });
 
 exports.subirImagen = [
     upload.single('imagen'),
-    (req, res) => {
-        if (!req.file) {
-            return res.status(400).json({
-                error: "No se subió ninguna imagen"
-            });
-        }
+(req, res) => {
+    console.log("FILE RECIBIDO:", req.file);
 
-        const imageUrl = `https://sistema-practicas.onrender.com/uploads/${req.file.filename}`;
-
-        res.status(200).json({
-            url: imageUrl
+    if (!req.file) {
+        console.log("NO LLEGÓ ARCHIVO");
+        return res.status(400).json({
+            error: "No se subió ninguna imagen"
         });
     }
+
+    const imageUrl = `https://sistema-practicas.onrender.com/uploads/${req.file.filename}`;
+
+    console.log("URL GENERADA:", imageUrl);
+
+    res.status(200).json({
+        url: imageUrl
+    });
+}
 ];
 
 exports.getMensajes = (req, res) => {
