@@ -4,6 +4,8 @@ const path = require('path');
 const session = require('express-session');
 require('dotenv').config();
 
+const chatRoutes = require('./routes/chatRoutes');
+
 const authRoutes = require('./routes/authRoutes');
 const estudianteRoutes = require('./routes/estudianteRoutes');
 const recuperarRoutes = require('./routes/recuperarRoutes');
@@ -35,6 +37,7 @@ app.get('/', (req, res) => res.redirect('/login'));
 app.use('/', authRoutes);
 app.use('/', estudianteRoutes);
 app.use('/', recuperarRoutes);
+app.use('/', chatRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
