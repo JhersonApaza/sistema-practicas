@@ -6,5 +6,5 @@ router.get('/api/chat/mensajes', ctrl.getMensajes);
 router.post('/api/chat/enviar', ctrl.enviarMensaje);
 router.post('/api/chat/upload', ctrl.subirImagen);
 router.delete('/api/chat/:id', ctrl.eliminarMensaje);
-
+router.put('/api/chat/:id', ctrl.editarMensaje);   
 module.exports = router;
