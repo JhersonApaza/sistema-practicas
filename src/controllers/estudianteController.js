@@ -1,7 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 
-const estudianteController = require('../controllers/estudianteController');
 
 
 // ─── WEB (Supervisor) ───────────────────────────────────────────

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/estudianteController');
+const estudianteController = require('../controllers/estudianteController');
 
 const auth = (req, res, next) => {
     if (!req.session.supervisor) return res.redirect('/login');
