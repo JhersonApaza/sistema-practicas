@@ -78,3 +78,20 @@ exports.editarMensaje = (req, res) => {
         res.status(200).json({ success: true });
     });
 };
+
+exports.editarMensaje = (req, res) => {
+    const { id } = req.params;
+    const { mensaje } = req.body;
+
+    if (!mensaje || !mensaje.trim()) {
+        return res.status(400).json({ error: "Mensaje vacío" });
+    }
+
+    db.query("UPDATE mensajes SET mensaje = ? WHERE id = ?", [mensaje.trim(), id], (err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Error al editar" });
+        }
+        res.status(200).json({ success: true });
+    });
+};

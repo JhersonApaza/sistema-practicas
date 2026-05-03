@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // ── Almacén temporal de códigos (clave: correo → {codigo, expiracion, intentos})
 const codigosTemporales = new Map();
@@ -133,31 +134,39 @@ exports.mostrarFormularioCambio = (req, res) => {
 };
 
 // ── POST /recuperar/cambiar-contrasena ──────────────────────────────────
-exports.cambiarContrasena = (req, res) => {
+exports.cambiarContrasena = async (req, res) => {
   const { correo, nuevaContrasena } = req.body;
 
   if (!correo || !nuevaContrasena) {
     return res.json({ ok: false, mensaje: 'Datos incompletos.' });
   }
 
-  // Verificar que el correo fue verificado recientemente
+  // Verificar que el correo fue validado
   const expiracion = codigosVerificados.get(correo.trim());
   if (!expiracion || Date.now() > expiracion) {
-    return res.json({ ok: false, mensaje: 'Sesión de recuperación expirada. Vuelve a iniciar el proceso.' });
+    return res.json({ ok: false, mensaje: 'Sesión de recuperación expirada.' });
   }
 
-  // ⚠️  NOTA: En producción usa bcrypt para hashear la contraseña antes de guardarla.
-  //     Ejemplo: const hash = await bcrypt.hash(nuevaContrasena, 10);
-  //     Y luego guarda hash en vez de nuevaContrasena.
-  const sql = 'UPDATE supervisores SET contrasenia = ? WHERE correo = ?';
-  db.query(sql, [nuevaContrasena.trim(), correo.trim()], (err, result) => {
-    if (err) {
-      console.error('Error al actualizar contraseña:', err);
-      return res.json({ ok: false, mensaje: 'Error al guardar la contraseña.' });
-    }
+  try {
+    // 🔐 HASH DE LA NUEVA CONTRASEÑA
+    const hash = await bcrypt.hash(nuevaContrasena.trim(), 10);
 
-    codigosVerificados.delete(correo.trim());
-    console.log(` Contraseña actualizada para: ${correo}`);
-    return res.json({ ok: true });
-  });
+    const sql = 'UPDATE supervisores SET contrasenia = ? WHERE correo = ?';
+
+    db.query(sql, [hash, correo.trim()], (err, result) => {
+      if (err) {
+        console.error('Error al actualizar contraseña:', err);
+        return res.json({ ok: false, mensaje: 'Error al guardar la contraseña.' });
+      }
+
+      codigosVerificados.delete(correo.trim());
+
+      console.log(`🔐 Contraseña actualizada (HASH) para: ${correo}`);
+      return res.json({ ok: true });
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.json({ ok: false, mensaje: 'Error en el servidor.' });
+  }
 };

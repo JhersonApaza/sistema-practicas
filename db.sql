@@ -1,6 +1,4 @@
--- =============================================
 -- SISTEMA DE PRÁCTICAS - Base de Datos
--- =============================================
 
 CREATE DATABASE IF NOT EXISTS sistema_practicas;
 USE sistema_practicas;

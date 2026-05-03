@@ -21,14 +21,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// SOLO UNA VEZ la sesión
+// SOLO UNA VEZ
 app.use(session({
     secret: process.env.SESSION_SECRET || 'sistema_practicas_secret',
     resave: true,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,
+        secure: false, 
         sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24
     }
