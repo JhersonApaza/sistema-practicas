@@ -137,3 +137,22 @@ exports.apiVerificarSesion = (req, res) => {
         res.json({ activo: true });
     });
 };
+
+exports.apiCambiarContrasenia = async (req, res) => {
+    const { correo, contraseniaActual, nuevaContrasenia } = req.body;
+
+    db.query('SELECT * FROM estudiantes WHERE correo = ?', [correo], async (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ error: 'Estudiante no encontrado' });
+
+        const est = results[0];
+        const match = await bcrypt.compare(contraseniaActual.trim(), est.contrasenia);
+        if (!match) return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+
+        const hash = await bcrypt.hash(nuevaContrasenia.trim(), 10);
+        db.query('UPDATE estudiantes SET contrasenia = ? WHERE correo = ?', [hash, correo], (err2) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.json({ success: true });
+        });
+    });
+};
