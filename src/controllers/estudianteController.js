@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // ─── WEB (Supervisor) ───────────────────────────────────────────
 
@@ -17,28 +18,47 @@ exports.getOne = (req, res) => {
     });
 };
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     const { nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono } = req.body;
-    const sql = `INSERT INTO estudiantes (nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono, id_supervisor)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const valores = [nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono || null, req.session.supervisor.id_supervisor];
 
-    db.query(sql, valores, (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, id: result.insertId });
-    });
+    try {
+        const hash = await bcrypt.hash(contrasenia, 10); // ✅ hashear antes de guardar
+
+        const sql = `INSERT INTO estudiantes (nombre, apellido, dni, carrera, institucion, correo, contrasenia, telefono, id_supervisor)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const valores = [nombre, apellido, dni, carrera, institucion, correo, hash, telefono || null, req.session.supervisor.id_supervisor];
+
+        db.query(sql, valores, (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, id: result.insertId });
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
     const { nombre, apellido, dni, carrera, institucion, correo, contrasenia } = req.body;
-    const sql = `UPDATE estudiantes SET nombre=?, apellido=?, dni=?, carrera=?, institucion=?, correo=?, contrasenia=?
-                 WHERE id_estudiante=?`;
-    const valores = [nombre, apellido, dni, carrera, institucion, correo, contrasenia, req.params.id];
 
-    db.query(sql, valores, (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
+    try {
+        let hash = contrasenia;
+
+        // ✅ Solo hashear si se mandó una nueva contraseña en texto plano
+        if (contrasenia && !contrasenia.startsWith('$2b$')) {
+            hash = await bcrypt.hash(contrasenia, 10);
+        }
+
+        const sql = `UPDATE estudiantes SET nombre=?, apellido=?, dni=?, carrera=?, institucion=?, correo=?, contrasenia=?
+                     WHERE id_estudiante=?`;
+        const valores = [nombre, apellido, dni, carrera, institucion, correo, hash, req.params.id];
+
+        db.query(sql, valores, (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 // PATCH: solo actualiza el teléfono
@@ -76,14 +96,18 @@ exports.remove = (req, res) => {
 
 // ─── API REST (Android) ─────────────────────────────────────────
 
-exports.apiLogin = (req, res) => {
+exports.apiLogin = async (req, res) => {
     const { correo, contrasenia } = req.body;
-    db.query('SELECT * FROM estudiantes WHERE correo = ?', [correo], (err, results) => {
+
+    db.query('SELECT * FROM estudiantes WHERE correo = ?', [correo], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.length === 0) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
         const est = results[0];
-        if (est.contrasenia.trim() !== contrasenia.trim()) {
+
+        // ✅ comparar con bcrypt
+        const match = await bcrypt.compare(contrasenia.trim(), est.contrasenia);
+        if (!match) {
             return res.status(401).json({ error: 'Credenciales incorrectas' });
         }
 
