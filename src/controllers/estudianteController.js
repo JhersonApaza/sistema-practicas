@@ -124,3 +124,14 @@ exports.apiLogin = async (req, res) => {
         });
     });
 };
+
+exports.apiVerificarSesion = (req, res) => {
+    const correo = decodeURIComponent(req.params.correo);
+    db.query('SELECT id_estudiante FROM estudiantes WHERE correo = ?', [correo], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) {
+            return res.status(404).json({ activo: false });
+        }
+        res.json({ activo: true });
+    });
+};
