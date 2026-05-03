@@ -23,5 +23,6 @@ router.get('/api/verificar-sesion/:correo', estudianteController.apiVerificarSes
 // API pública para Android
 router.post('/api/auth/estudiante', ctrl.apiLogin);
 router.post('/api/cambiar-contrasenia', estudianteController.apiCambiarContrasenia);
+router.get('/api/perfil/:correo', estudianteController.apiGetPerfil);
 
 module.exports = router;

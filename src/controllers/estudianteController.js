@@ -156,3 +156,21 @@ exports.apiCambiarContrasenia = async (req, res) => {
         });
     });
 };
+
+exports.apiGetPerfil = (req, res) => {
+    const correo = decodeURIComponent(req.params.correo);
+    db.query('SELECT * FROM estudiantes WHERE correo = ?', [correo], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ error: 'No encontrado' });
+        const est = results[0];
+        res.json({
+            nombre: est.nombre,
+            apellido: est.apellido,
+            dni: est.dni,
+            carrera: est.carrera,
+            institucion: est.institucion,
+            nota: est.nota,
+            comentario: est.comentario
+        });
+    });
+};
