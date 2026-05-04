@@ -42,35 +42,93 @@ exports.enviarCodigo = async (req, res) => {
         to: correo.trim(),
         subject: 'Código de verificación — Recuperar contraseña',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; background: #0b0f1a; color: #f1f5f9; border-radius: 16px; overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #6366f1, #4f46e5); padding: 32px; text-align: center;">
-              <h2 style="margin:0; color:white;">Sistema de Prácticas</h2>
-            </div>
-            <div style="padding: 32px;">
-              <p style="margin: 0 0 16px; color: #94a3b8; font-size: 14px;">
-                Hola, recibimos una solicitud para recuperar tu contraseña.<br>
-                Usa el siguiente código de verificación:
-              </p>
-              <div style="background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 28px; text-align: center; margin: 24px 0;">
-                <span style="font-family: monospace; font-size: 40px; font-weight: 700; letter-spacing: 12px; color: #a5b4fc;">${codigo}</span>
-              </div>
-              <p style="font-size: 12px; color: #475569; text-align: center;">
-                ⏰ Este código expira en <strong style="color:#818cf8;">10 minutos</strong>
-              </p>
-              <p style="font-size: 12px; color: #334155; margin-top: 20px;">
-                Si no solicitaste esto, ignora este mensaje.
-              </p>
-            </div>
-            <div style="background: #0b0f1a; border-top: 1px solid #1e293b; padding: 16px 32px; text-align: center;">
-              <span style="font-size: 11px; font-family: monospace; color: #334155;">Sistema de Calificación de Prácticas</span>
-            </div>
-          </div>
+          <body style="margin:0; padding:0; background:#f3f4f6; font-family: Arial, sans-serif;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6; padding: 32px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; border: 1px solid #d1d5db;">
+    
+                    <!-- HEADER -->
+                    <tr>
+                      <td style="background:#0f2d56; padding: 20px 28px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td>
+                              <p style="margin:0; font-size:13px; font-weight:700; color:#ffffff; letter-spacing:0.03em;">Sistema de Prácticas</p>
+                              <p style="margin:2px 0 0; font-size:10px; color:rgba(255,255,255,0.5);">Soporte institucional</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+    
+                    <!-- BODY -->
+                    <tr>
+                      <td style="padding: 28px 28px 22px;">
+    
+                        <p style="margin:0 0 6px; font-size:16px; font-weight:600; color:#0f2d56;">Recuperación de contraseña</p>
+                        <div style="width:32px; height:2px; background:#0f2d56; border-radius:2px; margin-bottom:18px;"></div>
+    
+                        <p style="margin:0 0 20px; font-size:12px; color:#4b5563; line-height:1.7;">
+                          Hemos recibido una solicitud para restablecer la contraseña asociada a su cuenta.
+                          Ingrese el siguiente código en la plataforma para continuar:
+                        </p>
+    
+                        <!-- Código -->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4fa; border-left:4px solid #0f2d56; border-radius:4px; margin-bottom:18px;">
+                          <tr>
+                            <td style="padding: 22px 20px; text-align:center;">
+                              <p style="margin:0 0 10px; font-size:10px; color:#6b7280; letter-spacing:0.1em; text-transform:uppercase;">Código de verificación</p>
+                              <span style="font-family:'Courier New', Courier, monospace; font-size:46px; font-weight:700; letter-spacing:18px; color:#0f2d56;">${codigo}</span>
+                            </td>
+                          </tr>
+                        </table>
+    
+                        <!-- Barra de tiempo -->
+                        <p style="margin:0 0 6px; font-size:11px; color:#6b7280;">
+                          Tiempo de vigencia &nbsp;<strong style="color:#0f2d56;">10 minutos</strong>
+                        </p>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+                          <tr>
+                            <td style="background:#e5e7eb; border-radius:4px; height:6px;">
+                              <div style="background:#0f2d56; height:6px; width:100%; border-radius:4px;"></div>
+                            </td>
+                          </tr>
+                        </table>
+    
+                        <p style="margin:0; font-size:11px; color:#9ca3af; line-height:1.6;">
+                          Si usted no realizó esta solicitud, puede ignorar este correo de forma segura. Su cuenta permanece protegida.
+                        </p>
+    
+                      </td>
+                    </tr>
+    
+                    <!-- FOOTER -->
+                    <tr>
+                      <td style="background:#fafafa; border-top:1px solid #f3f4f6; padding: 14px 28px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td>
+                              <p style="margin:0; font-size:10px; color:#9ca3af;">Sistema de Calificación de Prácticas Profesionales</p>
+                            </td>
+                            <td align="right">
+                              <p style="margin:0; font-size:10px; color:#9ca3af;">Mensaje automático · No responder</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+    
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
         `
       });
-
+    
       console.log(`✅ Código enviado a ${correo}: ${codigo}`);
       return res.json({ ok: true });
-
     } catch (emailErr) {
       console.error('Error al enviar email:', emailErr);
       return res.json({ ok: false, mensaje: 'No se pudo enviar el correo. Verifica la configuración.' });
